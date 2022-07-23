@@ -1,14 +1,16 @@
 // ignore_for_file: avoid_print, import_of_legacy_library_into_null_safe, depend_on_referenced_packages
 
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:excel/excel.dart';
-import 'package:path/path.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_emoji/flutter_emoji.dart';
-import 'package:cross_file/cross_file.dart';
+import 'package:path/path.dart';
 
 void main() => runApp(const MyApp());
 
@@ -33,176 +35,244 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<XFile> list = [];
-
-  bool dragging = false;
+  final List<XFile> listaArquivosLeitura = [];
+  String caminhoDestino = '';
+  List<RegistroDiario> listaRegistrosDiarios = [];
 
   @override
   Widget build(BuildContext context) {
     var parser = EmojiParser();
 
     return FutureBuilder(
-        future: DesktopWindow.setWindowSize(const Size(400, 400)),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('XLS Test'),
-            ),
-            body: DropTarget(
-              onDragDone: (detail) {
-                setState(() {
-                  dragging = false;
-                  list.addAll(detail.files);
-                  print(list.length);
-                });
-              },
-              onDragEntered: (detail) {
-                setState(() {
-                  dragging = true;
-                });
-              },
-              onDragExited: (detail) {
-                setState(() {
-                  dragging = false;
-                });
-              },
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text('Arraste o arquivo gerado no aplicativo "Ponto Fácil" para cá!'),
-                    Text(
-                      parser.get('open_file_folder').code,
-                      style: TextStyle(
-                        fontSize: dragging ? 60 : 40,
+      future: DesktopWindow.setWindowSize(const Size(400, 400)),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('XLS Test'),
+          ),
+          body: DropTarget(
+            onDragDone: (detail) {
+              setState(() {
+                listaArquivosLeitura.addAll(detail.files);
+                final first = detail.files.first;
+                caminhoDestino = first.path.replaceAll('\\${first.name}', '').replaceAll('\\', '/');
+                print(' > caminhoDestino: $caminhoDestino');
+              });
+            },
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text('Arraste o arquivo gerado no aplicativo "Ponto Fácil" para cá!'),
+                  // Ícone de pasta
+                  Text(
+                    parser.get('open_file_folder').code,
+                    style: const TextStyle(fontSize: 50),
+                  ),
+                  // Lista de arquivos em memória
+                  if (listaArquivosLeitura.isNotEmpty) ...[
+                    const Divider(),
+                    ...listaArquivosLeitura.map((e) => Text(e.path)).toList(),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 16),
+                      child: GestureDetector(
+                        child: const Text('Limpar arquivos', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onTap: () {
+                          setState(() {
+                            listaArquivosLeitura.clear();
+                          });
+                        },
                       ),
                     ),
-                    if (list.isNotEmpty) ...[
-                      const Divider(),
-                      ...list.map((e) => Text(e.path)).toList(),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 16),
-                        child: GestureDetector(
-                          child: const Text('Limpar arquivos', style: TextStyle(fontWeight: FontWeight.bold)),
-                          onTap: () {
-                            setState(() {
-                              list.clear();
-                            });
-                          },
-                        ),
-                      ),
-                    ]
-                  ],
-                ),
+                  ]
+                ],
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: _geraXls,
-              tooltip: 'Gera arquivo',
-              child: const Icon(Icons.file_copy),
-            ),
-          );
-        });
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: _geraXls,
+            tooltip: 'Gera arquivo',
+            child: const Icon(Icons.file_copy),
+          ),
+        );
+      },
+    );
+  }
+
+  String _letraCorrespondente(int n) {
+    switch (n) {
+      case 0:
+        return 'A';
+      case 1:
+        return 'B';
+      case 2:
+        return 'C';
+      case 3:
+        return 'D';
+      case 4:
+        return 'E';
+      case 5:
+        return 'F';
+      case 6:
+        return 'G';
+      case 7:
+        return 'H';
+      case 8:
+        return 'I';
+      case 9:
+        return 'J';
+      case 10:
+        return 'K';
+      case 11:
+        return 'L';
+      case 12:
+        return 'M';
+      case 13:
+        return 'N';
+      case 14:
+        return 'O';
+      case 15:
+        return 'P';
+      case 16:
+        return 'Q';
+      case 17:
+        return 'R';
+      case 18:
+        return 'S';
+      case 19:
+        return 'T';
+      case 20:
+        return 'U';
+      case 21:
+        return 'V';
+      case 22:
+        return 'X';
+      case 23:
+        return 'Z';
+      case 24:
+        return 'W';
+      case 25:
+        return 'Y';
+      case 26:
+        return 'AA';
+      case 27:
+        return 'AB';
+      case 28:
+        return 'AC';
+      case 29:
+        return 'AD';
+      case 30:
+        return 'AE';
+    }
+    return '';
   }
 
   void _geraXls() {
-    if (list.isNotEmpty) {
-      for (var arquivo in list) {
-        // var file = "/Users/kawal/Desktop/form.xlsx";
-        var file = arquivo.path;
-        var bytes = File(file).readAsBytesSync();
-
-        // var excel = Excel.createExcel();
-        // // or
-        // //var excel = Excel.decodeBytes(bytes);
-        var excel = Excel.decodeBytes(bytes);
-        // for (var table in excel.tables.keys) {
-        //   print(table);
-        //   print(excel.tables[table]!.maxCols);
-        //   print(excel.tables[table]!.maxRows);
-        //   for (var row in excel.tables[table]!.rows) {
-        //     print("$row");
-        //   }
-        // }
-        for (var table in excel.tables.keys) {
-          print(table);
-          print(excel.tables[table]!.maxCols);
-          print(excel.tables[table]!.maxRows);
-          for (var row in excel.tables[table]!.rows) {
-            print("$row");
+    if (listaArquivosLeitura.isNotEmpty) {
+      for (var i = 0; i < listaArquivosLeitura.length; i++) {
+        final caminhoArquivoLeitura = listaArquivosLeitura[i].path;
+        final bytesArquivoLeitura = File(caminhoArquivoLeitura).readAsBytesSync();
+        // Inicializa obj Excel para leitura
+        final excelLeitura = Excel.decodeBytes(bytesArquivoLeitura);
+        // Inicializa obj Excel para escrita
+        final excelCriacao = Excel.createExcel();
+        final aba = excelCriacao['Sheet1'];
+        // Percorre cada aba do Excel
+        for (var abaLeituraAtual in excelLeitura.tables.keys) {
+          var identificadorDataAtual = '';
+          // Percorre cada aba do Excel
+          for (var k = 0; k < excelLeitura.tables[abaLeituraAtual]!.rows.length; k++) {
+            if (k >= 8) {
+              final linha = excelLeitura.tables[abaLeituraAtual]!.rows[k];
+              if (linha[1] != null &&
+                  linha[1].toString().contains('Data(') &&
+                  !linha[0].toString().contains('Nenhu') &&
+                  !linha[1].toString().contains('Nenhu') &&
+                  !linha[2].toString().contains('Nenhu')) {
+                identificadorDataAtual = linha[1].toString();
+                final registroDiario = RegistroDiario(identificador: identificadorDataAtual);
+                registroDiario.addHorario(linha[2].toString());
+                listaRegistrosDiarios.add(registroDiario);
+              } else if (linha[1] == null && linha[2].toString().contains('Data(') && !linha[2].toString().contains('Resumo')) {
+                listaRegistrosDiarios.firstWhere((element) => element.identificador == identificadorDataAtual).addHorario(linha[2].toString());
+              }
+            }
           }
         }
 
-        CellStyle cellStyle = CellStyle(
-          bold: true,
-          italic: true,
-          fontFamily: getFontFamily(FontFamily.Comic_Sans_MS),
-        );
+        var indexLinhaDia = 1; // Um dia por linha
+        for (final dia in listaRegistrosDiarios) {
+          final horariosPorDia = dia.horarios;
+          aba.cell(CellIndex.indexByString('A$indexLinhaDia')).value = dia.identificador;
+          for (var indexHorarioColuna = 0; indexHorarioColuna < horariosPorDia.length; indexHorarioColuna++) {
+            final letra = _letraCorrespondente(indexHorarioColuna + 1);
+            aba.cell(CellIndex.indexByString('$letra$indexLinhaDia')).value = horariosPorDia[indexHorarioColuna];
+          }
+          indexLinhaDia++;
+        }
 
-        var sheet = excel['Sheet1'];
-
-        var cell = sheet.cell(CellIndex.indexByString("A1"));
-        cell.value = "Heya How are you I am fine ok goood night";
-        cell.cellStyle = cellStyle;
-
-        var cell2 = sheet.cell(CellIndex.indexByString('E5'));
-        cell2.value = 'Heya How night';
-        cell2.cellStyle = cellStyle;
-
-        // /// printing cell-type
-        // print('CellType: ${cell.cellType.toString()}');
-
-        // /// Iterating and changing values to desired type
-        // for (int row = 0; row < sheet.maxRows; row++) {
-        //   sheet.row(row).forEach(
-        //     (cell) {
-        //       // var val = cell.value; //  Value stored in the particular cell
-        //       cell?.value = ' My custom Value ';
-        //     },
-        //   );
-        // }
-
-        // /// appending rows
-        // List<List<String>> list = List.generate(6000, (index) => List.generate(20, (index1) => '$index $index1'));
-
-        // Stopwatch stopwatch = Stopwatch()..start();
-        // for (var row in list) {
-        //   sheet.appendRow(row);
-        // }
-
-        // print('doSomething() executed in ${stopwatch.elapsed}');
-
-        // sheet.appendRow([8]);
-        // // excel.setDefaultSheet(sheet.sheetName).then(
-        // //   (isSet) {
-        // //     // isSet is bool which tells that whether the setting of default sheet is successful or not.
-        // //     if (isSet) {
-        // //       print("${sheet.sheetName} is set to default sheet.");
-        // //     } else {
-        // //       print("Unable to set ${sheet.sheetName} to default sheet.");
-        // //     }
-        // //   },
-        // // );
-        // var isSet = excel.setDefaultSheet(sheet.sheetName);
-        // if (isSet) {
-        //   print("${sheet.sheetName} is set to default sheet.");
-        // } else {
-        //   print("Unable to set ${sheet.sheetName} to default sheet.");
-        // }
-
-        // Saving the file
-        // String outputFile = "/Users/kawal/Desktop/form1.xlsx";
-        String outputFile = "C:/Users/Cristian/Desktop/form1.xlsx";
-        var bytesListValues = excel.encode();
-        File(join(outputFile))
+        final caminhoArquivoEscrita = '$caminhoDestino/form_${i + 1}.xlsx';
+        final bytesArquivoEscrita = excelCriacao.encode();
+        File(join(caminhoArquivoEscrita))
           ..createSync(recursive: true)
-          ..writeAsBytesSync(bytesListValues!);
+          ..writeAsBytesSync(bytesArquivoEscrita!);
       }
     }
   }
+
+// /// Data(07:56 - 11:28, 2, 10, null, Extrato)
+//   String _trataHorario(String strXls) {
+//     return strXls.substring(0);
+//   }
+}
+
+class RegistroDiario {
+  String identificador;
+  List<String> horarios = <String>[];
+  RegistroDiario({
+    required this.identificador,
+  });
+
+  // Data(07:56 - 11:28, 2, 10, null, Extrato)
+  void addHorario(String horario) {
+    var h1 = horario.substring(5, 10);
+    horarios.add(h1);
+    var h2 = horario.substring(13, 18);
+    horarios.add(h2);
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'identificador': identificador,
+      'horarios': horarios,
+    };
+  }
+
+  factory RegistroDiario.fromMap(Map<String, dynamic> map) {
+    return RegistroDiario(
+      identificador: map['identificador'] ?? '',
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory RegistroDiario.fromJson(String source) => RegistroDiario.fromMap(json.decode(source));
+
+  @override
+  String toString() => 'RegistroDiario(identificador: $identificador, horarios: $horarios)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is RegistroDiario && other.identificador == identificador && listEquals(other.horarios, horarios);
+  }
+
+  @override
+  int get hashCode => identificador.hashCode ^ horarios.hashCode;
 }

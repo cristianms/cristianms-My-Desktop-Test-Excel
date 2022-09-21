@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
@@ -33,7 +32,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<XFile> listaArquivosLeitura = [];
   String caminhoDestino = '';
   List<RegistroDiario> listaRegistrosDiarios = [];
 
